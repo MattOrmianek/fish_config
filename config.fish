@@ -11,12 +11,15 @@ set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/
 #alias l='ls -all'
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
 
+function p
+    python3 $argv
+end
 function vs
     code $argv
 end
 
 function sz
-    python3 /Users/mateuszormianek/functions/sz.py
+    python3 /Users/mateuszormianek/functions/sz.py $argv
 end
 
 function c
@@ -41,6 +44,14 @@ end
 
 function cw
     cd /Users/mateuszormianek/Desktop/pracka
+end
+
+function cm
+    cd ~
+end
+
+function cc
+    cd ~/.config/fish
 end
 
 function f
@@ -76,16 +87,50 @@ function l
     }'
 end
 
-function nl
-    # Get the number of inserted lines from the last commit
-    set -l insertion (git diff --stat HEAD | tail -n 1 | awk '{print $4}')
-    
-    # Get the number of deleted lines from the last commit
-    set -l deletion (git diff --stat HEAD | tail -n 1 | awk '{print $6}')
-    
-    # Calculate the sum of inserted and deleted lines
-    set sum (math $insertion + $deletion)
-    
-    # Display the total changed lines since the last commit
-    echo "Changed lines since last commit: $sum"
+function is_venv
+    # Check for the presence of the bin folder
+    if test -d $argv/bin
+        # Check for the presence of the activate script inside the bin folder
+        if test -f $argv/bin/activate
+            return 0 # Return 0 if both conditions are met, meaning it's likely a venv
+        end
+    end
+    return 1 # Return 1 if any condition is not met, meaning it's not a venv
 end
+
+function nl
+    # Check if the current directory is a Git repository
+    git rev-parse --is-inside-work-tree > /dev/null 2>&1
+    if test $status -ne 0
+        echo "Not a Git repository."
+        return 1
+    end
+
+    set -l changes (git diff --shortstat HEAD 2>&1)
+    if test $status -ne 0
+        echo "Error or warning occurred: $changes"
+        return 1
+    end
+
+    # Extract insertions and deletions
+    set -l insertions (echo $changes | grep -o '\([0-9]\+\) insertion' | sed 's/[^0-9]*//g')
+    set -l deletions (echo $changes | grep -o '\([0-9]\+\) deletion' | sed 's/[^0-9]*//g')
+
+    # Summarize the changes
+    set -l total_insertions (math "$insertions + 0")
+    set -l total_deletions (math "$deletions + 0")
+
+    # Check how many lines of code there are in the project, excluding virtual environments
+    set -l total_lines 0
+    set -l without_paths ""
+    for dir in ./*/
+        if is_venv $dir
+            set without_paths "$dir"
+        end
+    end
+    echo "Excluding paths: $without_paths"
+
+    set total_lines (sz --without $without_paths | grep 'total line count:' | awk '{ print $4 }')
+    echo "lines: $total_lines | insertions: $total_insertions | deletions: $total_deletions"
+end
+
