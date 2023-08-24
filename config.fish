@@ -11,6 +11,10 @@ set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/
 #alias l='ls -all'
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
 
+function gl
+    gitl
+end
+
 function p
     python3 $argv
 end
@@ -19,6 +23,7 @@ function vs
 end
 
 function sz
+# change path to /.config/fish/sz.py
     python3 /Users/mateuszormianek/functions/sz.py $argv
 end
 
@@ -36,6 +41,10 @@ end
 
 function c...
     cd ../../..
+end
+
+function gp
+    git push
 end
 
 function cD
