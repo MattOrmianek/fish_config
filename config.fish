@@ -23,7 +23,6 @@ function vs
 end
 
 function sz
-# change path to /.config/fish/sz.py
     python3 /Users/mateuszormianek/functions/sz.py $argv
 end
 
@@ -109,6 +108,16 @@ end
 
 function nl
     # Check if the current directory is a Git repository
+    set -l split_opt ""
+    set -l split_status False
+    # Check for split argument
+    if test "$argv[1]" = "s"
+        set split_opt "--split"
+        set split_status True
+    else
+        set split_status False
+    end
+
     git rev-parse --is-inside-work-tree > /dev/null 2>&1
     if test $status -ne 0
         echo "Not a Git repository."
@@ -139,7 +148,14 @@ function nl
     end
     echo "Excluding paths: $without_paths"
 
-    set total_lines (sz --without $without_paths | grep 'total line count:' | awk '{ print $4 }')
-    echo "lines: $total_lines | insertions: $total_insertions | deletions: $total_deletions"
+    if test $split_status = False
+        set total_lines (sz --without $without_paths | grep 'total line count:' | awk '{ print $4 }')
+        echo "lines: $total_lines | insertions: $total_insertions | deletions: $total_deletions"
+    end
+
+    if test "$split_status" = "True"
+    sz --without $without_paths --split
+    end
+
 end
 
