@@ -114,8 +114,6 @@ function nl
     if test "$argv[1]" = "s"
         set split_opt "--split"
         set split_status True
-    else
-        set split_status False
     end
 
     git rev-parse --is-inside-work-tree > /dev/null 2>&1
@@ -130,13 +128,34 @@ function nl
         return 1
     end
 
-    # Extract insertions and deletions
-    set -l insertions (echo $changes | grep -o '\([0-9]\+\) insertion' | sed 's/[^0-9]*//g')
-    set -l deletions (echo $changes | grep -o '\([0-9]\+\) deletion' | sed 's/[^0-9]*//g')
+    # Initialize total insertions and deletions
+    set -l total_insertions 0
+    set -l total_deletions 0
 
-    # Summarize the changes
-    set -l total_insertions (math "$insertions + 0")
-    set -l total_deletions (math "$deletions + 0")
+    # Accumulate changes per file
+    set -l changed_files (git diff --name-only HEAD)
+    for file in $changed_files
+        echo "File: $file"
+        # Count the insertions and deletions for the current file
+        set -l deletions (git diff HEAD -- $file | grep '^[-]' | grep -vc '^[-][-]')
+        set -l insertions (git diff HEAD -- $file | grep '^[+]' | grep -vc '^[+][+]')
+        echo -e "\033[32mINSERTIONS: $insertions\033[32m |\033[31m DELETIONS: $deletions \033[0m"
+        # Update the total counts
+        set total_insertions (math "$total_insertions + $insertions")
+        set total_deletions (math "$total_deletions + $deletions")
+
+        # Capture and display the changes, line by line
+        git diff HEAD -- $file | awk '/^[+-]/ && !/^(--- a\/|\+\+\+ b\/)/ { print }' | while read -l line
+            if test (string sub -l 1 -- $line) = "+"
+                # Green color for lines starting with +
+                echo -e "\t\033[32m$line\033[0m"
+            else if test (string sub -l 1 -- $line) = "-"
+                # Red color for lines starting with -
+                echo -e "\t\033[31m$line\033[0m"
+            end
+        end
+
+    end
 
     # Check how many lines of code there are in the project, excluding virtual environments
     set -l total_lines 0
@@ -150,12 +169,11 @@ function nl
 
     if test $split_status = False
         set total_lines (sz --without $without_paths | grep 'total line count:' | awk '{ print $4 }')
-        echo "lines: $total_lines | insertions: $total_insertions | deletions: $total_deletions"
+        echo "lines: $total_lines | total insertions: $total_insertions | total deletions: $total_deletions"
     end
 
     if test "$split_status" = "True"
-    sz --without $without_paths --split
+        sz --without $without_paths --split
     end
 
 end
-
