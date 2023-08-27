@@ -11,6 +11,7 @@ set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/
 #alias l='ls -all'
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
 
+
 function gl
     gitl
 end
@@ -76,8 +77,43 @@ function venv
     echo "Activated virtual environment at $argv[1]"
 end
 
+
 function l
-    ls -lt | awk 'NR > 1 {
+    set -l grep_pattern ""
+    set -l sort_option ""
+    set -l max_length 20
+    set -l max_files 0
+
+    for i in (seq (count $argv))
+        switch $argv[$i]
+            case "g"
+                set grep_pattern $argv[(math "$i + 1")]
+                set i (math "$i + 1")
+            case "S"
+                set sort_option "-S"
+            case "m"
+                set max_files $argv[(math "$i + 1")]
+                set i (math "$i + 1")
+        end
+    end
+
+    for file in (ls)
+        set -l length (string length $file)
+        if test $length -gt $max_length
+            set max_length $length
+        end
+    end
+
+    set -l cmd "ls -lt"
+    if test -n "$sort_option"
+        set cmd "$cmd $sort_option"
+    end
+
+    eval $cmd | awk -v pattern="$grep_pattern" -v max_len="$max_length" -v max_files="$max_files" 'BEGIN {count=0} NR > 1 {
+        if ($9 == "all" || (pattern != "" && $9 !~ pattern)) next;
+        count++;
+        if (max_files > 0 && count > max_files) exit;
+        # ... (rest of your awk script)
         type = ($1 ~ /^d/) ? "D" : "F";
         color_start = ($1 ~ /^d/) ? "\033[35m" : ($9 ~ /\.py$/) ? "\033[32m" : "";
         color_end = "\033[0m";
@@ -91,9 +127,10 @@ function l
             size = size / 1024;
             unit = "MB";
         }
-        printf " %s%-30s%s %-2s %-3s %-3s %-5s | %-2s %-5.0f \n", color_start, $9, color_end, type, $7, $6, $8, unit, size
+        printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-2s %-5.0f \n", color_start, $9, color_end, type, $7, $6, $8, unit, size
     }'
 end
+
 
 function is_venv
     # Check for the presence of the bin folder
@@ -154,7 +191,6 @@ function nl
                 echo -e "\t\033[31m$line\033[0m"
             end
         end
-
     end
 
     # Check how many lines of code there are in the project, excluding virtual environments
