@@ -78,22 +78,37 @@ function venv
 end
 
 
+
+
+
+
 function l
     set -l grep_pattern ""
     set -l sort_option ""
     set -l max_length 20
     set -l max_files 0
+    set -l arg_count (count $argv)
 
-    for i in (seq (count $argv))
-        switch $argv[$i]
-            case "g"
-                set grep_pattern $argv[(math "$i + 1")]
-                set i (math "$i + 1")
-            case "S"
-                set sort_option "-S"
-            case "m"
-                set max_files $argv[(math "$i + 1")]
-                set i (math "$i + 1")
+    if test $arg_count -eq 0
+        set grep_pattern ""
+        set sort_option ""
+        set max_files 0
+    else
+        for i in (seq $arg_count)
+            switch $argv[$i]
+                case "g"
+                    if test (math "$i + 1") -le $arg_count
+                        set grep_pattern $argv[(math "$i + 1")]
+                        set i (math "$i + 1")
+                    end
+                case "S"
+                    set sort_option "-S"
+                case "m"
+                    if test (math "$i + 1") -le $arg_count
+                        set max_files $argv[(math "$i + 1")]
+                        set i (math "$i + 1")
+                    end
+            end
         end
     end
 
@@ -113,23 +128,31 @@ function l
         if ($9 == "all" || (pattern != "" && $9 !~ pattern)) next;
         count++;
         if (max_files > 0 && count > max_files) exit;
-        # ... (rest of your awk script)
         type = ($1 ~ /^d/) ? "D" : "F";
         color_start = ($1 ~ /^d/) ? "\033[35m" : ($9 ~ /\.py$/) ? "\033[32m" : "";
         color_end = "\033[0m";
         size = $5;
         unit = "B";
         if (size >= 1024) {
-            size = size / 1024;
+            size /= 1024;
             unit = "KB";
         }
         if (size >= 1024) {
-            size = size / 1024;
+            size /= 1024;
             unit = "MB";
         }
-        printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-2s %-5.0f \n", color_start, $9, color_end, type, $7, $6, $8, unit, size
+        if (size >= 1024) {
+            size /= 1024;
+            unit = "GB";
+        }
+        if (size >= 1024) {
+            size /= 1024;
+            unit = "TB";
+        }
+        printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-6.1f %-2s \n", color_start, $9, color_end, type, $7, $6, $8, size, unit
     }'
 end
+
 
 
 function is_venv
