@@ -12,6 +12,14 @@ set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
 
 
+function f
+    fish
+end
+
+function nq
+    networkquality
+end
+
 function gl
     gitl
 end
@@ -63,11 +71,6 @@ function cc
     cd ~/.config/fish
 end
 
-function f
-    fish
-end
-
-
 function b
     git branch
 end
@@ -76,11 +79,6 @@ function venv
     source $argv[1]/bin/activate.fish
     echo "Activated virtual environment at $argv[1]"
 end
-
-
-
-
-
 
 function l
     set -l grep_pattern ""
@@ -152,8 +150,6 @@ function l
         printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-6.1f %-2s \n", color_start, $9, color_end, type, $7, $6, $8, size, unit
     }'
 end
-
-
 
 function is_venv
     # Check for the presence of the bin folder
