@@ -1,4 +1,5 @@
 
+
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 #eval /Users/mateuszormianek/opt/anaconda3/bin/conda "shell.fish" "hook" $argv | source
@@ -11,10 +12,151 @@ set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/
 #alias l='ls -all'
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
 
-
 function f
     fish
 end
+
+# Function for checking name and email of git user
+function gml
+    git config --global user.name
+    git config --global user.email
+end
+
+function corti
+    echo "Before change: "
+    git config --global user.name
+    git config --global user.email
+
+    #change to TechOcean login and email
+    git config --global user.name "Mateusz Ormianek"
+    git config --global user.email "mormianek@cortivision.com"
+
+    echo "After change: "
+    git config --global --get user.name
+    git config --global --get user.email
+end
+
+function to
+    echo "Before change: "
+    git config --global user.name
+    git config --global user.email
+
+    #change to TechOcean login and email
+    git config --global user.name "Mateusz Ormianek"
+    git config --global user.email "m.ormianek@techocean.pl"
+
+    echo "After change: "
+    git config --global --get user.name
+    git config --global --get user.email
+end
+
+function git_last
+    # Get the author name and email
+    set author_info (git log -1 --pretty=format:"Author: %an <%ae>")
+
+    # Get the commit time
+    set commit_time (git log -1 --pretty=format:"Time: %ad")
+
+    # Get the commit description
+    set commit_desc (git log -1 --pretty=format:"Description: %s")
+
+    # Print gathered information
+    echo $author_info
+    echo $commit_time
+    echo $commit_desc
+    echo "Changes:"
+
+    # Get the list of changed files
+    set changed_files (git show --name-only --pretty=format:"" HEAD)
+
+    # Loop through each changed file to count insertions and deletions
+    for file in $changed_files
+        # Count the insertions and deletions for the current file
+        set deletions (git diff HEAD^ HEAD -- $file | grep '^[-]' | grep -vc '^[-][-]')
+        set insertions (git diff HEAD^ HEAD -- $file | grep '^[+]' | grep -vc '^[+][+]')
+        echo -e "\033[32m$file: INSERTIONS: $insertions\033[32m |\033[31m DELETIONS: $deletions \033[0m"
+    end
+end
+
+function git_last_expanded
+    # Get the list of changed files
+    set changed_files (git show --name-only --pretty=format:"" HEAD)
+
+    # Loop through each changed file to show line-by-line changes
+    for file in $changed_files
+        echo "File: $file"
+        git diff HEAD^ HEAD -- $file | awk '/^[+-]/ && !/^(--- a\/|\+\+\+ b\/)/ { print }' | while read -l line
+            set first_char (string sub -l 1 -- $line)
+            if test "$first_char" = "+"
+                # Green color for lines starting with +
+                echo -e "\t\033[32m$line\033[0m"
+            else if test "$first_char" = "-"
+                # Red color for lines starting with -
+                echo -e "\t\033[31m$line\033[0m"
+            end
+        end
+    end
+end
+
+function git
+    if test "$argv[1]" = "push"
+        set global_email (git config --global user.email)
+        set global_name (git config --global user.name)
+        set local_email (git config user.email)
+        set local_name (git config user.name)
+
+        echo "Globalny autor: $global_name <$global_email>"
+        if test -n "$local_email" -o -n "$local_name"
+            echo "Lokalny autor: $local_name <$local_email>"
+        end
+
+        read -l -P 'Do you want to continue? [Y/N] ' confirm
+
+        switch $confirm
+            case Y y
+                command git push $argv[2..-1]
+            case '' N n
+                echo "Operacja przerwana przez użytkownika."
+                return 1
+        end
+
+    else
+        command git $argv
+    end
+end
+
+
+function test_prompt
+ 
+end
+
+function read_confirm
+  while true
+    
+  end
+end
+
+
+function s
+    find . -name "$argv"
+end
+
+function se
+    find . -name "*$argv*"
+end
+
+# Function for editing plan.txt
+function pl
+    if test "$argv" = "d"
+        rm /Users/mateuszormianek/plan.txt
+        touch /Users/mateuszormianek/plan.txt
+    else if test "$argv" = "e"
+        nano /Users/mateuszormianek/plan.txt
+    else
+        cat /Users/mateuszormianek/plan.txt
+    end
+end
+
 
 function nq
     networkquality
@@ -146,7 +288,7 @@ function l
         if (size >= 1024) {
             size /= 1024;
             unit = "TB";
-        }
+        #}
         printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-6.1f %-2s \n", color_start, $9, color_end, type, $7, $6, $8, size, unit
     }'
 end
