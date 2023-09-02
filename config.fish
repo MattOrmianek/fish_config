@@ -22,7 +22,7 @@ end
 # List of functions in fish
 function fl
     set -l filepath "/Users/mateuszormianek/.config/fish/config.fish"
-
+    set count_number 0
     if not test -f $filepath
         echo "Plik nie istnieje."
         return 1
@@ -42,9 +42,12 @@ function fl
             set -l function_name (string split " " $line)[2]
             set -l edited_comment (string split "#" $comment)[2]
             echo "F: $function_name - $edited_comment"
+
+            set count_number (math "$count_number + 1")
             set comment ""
         end
     end
+    echo "Functions: $count_number"
 end
 
 ################################################################################# GIT
