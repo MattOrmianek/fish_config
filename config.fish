@@ -1,5 +1,4 @@
 
-
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 #eval /Users/mateuszormianek/opt/anaconda3/bin/conda "shell.fish" "hook" $argv | source
@@ -12,17 +11,51 @@ set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/
 #alias l='ls -all'
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
 
+
+
+################################################################################# FISH
+# Fish reload
 function f
     fish
 end
 
-# Function for checking name and email of git user
+# List of functions in fish
+function fl
+    set -l filepath "/Users/mateuszormianek/.config/fish/config.fish"
+
+    if not test -f $filepath
+        echo "Plik nie istnieje."
+        return 1
+    end
+
+    set -l in_function 0
+    set -l comment ""
+
+    for line in (cat $filepath)
+        # Sprawdzanie, czy linia jest komentarzem
+        if string match -q "#*" $line
+            set comment $line
+        end
+
+        # Sprawdzanie, czy linia zaczyna się od 'function'
+        if string match -q "function*" $line
+            set -l function_name (string split " " $line)[2]
+            set -l edited_comment (string split "#" $comment)[2]
+            echo "F: $function_name - $edited_comment"
+            set comment ""
+        end
+    end
+end
+
+################################################################################# GIT
+# Checking name and email of git user
 function gml
     git config --global user.name
     git config --global user.email
 end
 
-function corti
+# Git user name and email to CR
+function cr
     echo "Before change: "
     git config --global user.name
     git config --global user.email
@@ -36,6 +69,7 @@ function corti
     git config --global --get user.email
 end
 
+# Git user name and email to TO
 function to
     echo "Before change: "
     git config --global user.name
@@ -50,6 +84,8 @@ function to
     git config --global --get user.email
 end
 
+
+# Commit, author and time of last commit in repo
 function git_last
     # Get the author name and email
     set author_info (git log -1 --pretty=format:"Author: %an <%ae>")
@@ -78,6 +114,7 @@ function git_last
     end
 end
 
+# Commit, author and time, changes of last commit in repo
 function git_last_expanded
     # Get the list of changed files
     set changed_files (git show --name-only --pretty=format:"" HEAD)
@@ -98,6 +135,12 @@ function git_last_expanded
     end
 end
 
+# Downloading all remote branches to repo
+function cz
+    python3 /Users/mateuszormianek/functions/cz.py $argv
+end
+
+# Git push with author checking
 function git
     if test "$argv[1]" = "push"
         set global_email (git config --global user.email)
@@ -118,110 +161,86 @@ function git
             case '' N n
                 echo "Operacja przerwana przez użytkownika."
                 return 1
-        end
-
+            end
+    else if test "$argv[1]" = "last"
+        git_last
+    else if test "$argv[1]" = "last_expanded"
     else
         command git $argv
     end
 end
 
 
-function test_prompt
- 
-end
-
-function read_confirm
-  while true
-    
-  end
-end
-
-
-function s
-    find . -name "$argv"
-end
-
-function se
-    find . -name "*$argv*"
-end
-
-# Function for editing plan.txt
-function pl
-    if test "$argv" = "d"
-        rm /Users/mateuszormianek/plan.txt
-        touch /Users/mateuszormianek/plan.txt
-    else if test "$argv" = "e"
-        nano /Users/mateuszormianek/plan.txt
-    else
-        cat /Users/mateuszormianek/plan.txt
-    end
-end
-
-
-function nq
-    networkquality
-end
-
+# Git log with advanced view
 function gl
     gitl
 end
 
-function p
-    python3 $argv
-end
-function vs
-    code $argv
-end
 
-function sz
-    python3 /Users/mateuszormianek/functions/sz.py $argv
-end
-
-function c
-    clear
-end
-
-function c.
-    cd ..
-end
-
-function c..
-    cd ../..
-end
-
-function c...
-    cd ../../..
-end
-
-function gp
-    git push
-end
-
-function cD
-    cd /Users/mateuszormianek/Desktop
-end
-
-function cw
-    cd /Users/mateuszormianek/Desktop/pracka
-end
-
-function cm
-    cd ~
-end
-
-function cc
-    cd ~/.config/fish
-end
-
+# Git branch
 function b
     git branch
 end
 
-function venv
-    source $argv[1]/bin/activate.fish
-    echo "Activated virtual environment at $argv[1]"
+################################################################################# SYSTEM
+# Searching for exact filename
+function s
+    find . -name "$argv"
 end
 
+# Searching for filename
+function se
+    find . -name "*$argv*"
+end
+
+
+# Network quality
+function nq
+    networkquality
+end
+
+# Clear
+function c
+    clear
+end
+
+# cd ..
+function c.
+    cd ..
+end
+
+# cd ../..
+function c..
+    cd ../..
+end
+
+# cd ../../..
+function c...
+    cd ../../..
+end
+
+# cd Desktop
+function cD
+    cd /Users/mateuszormianek/Desktop
+end
+
+# cd Work
+function cw
+    cd /Users/mateuszormianek/Desktop/pracka
+end
+
+# cd Main
+function cm
+    cd ~
+end
+
+# cd Config
+function cc
+    cd ~/.config/fish
+end
+
+
+# List of files <S> <m number> <g name>
 function l
     set -l grep_pattern ""
     set -l sort_option ""
@@ -288,11 +307,99 @@ function l
         if (size >= 1024) {
             size /= 1024;
             unit = "TB";
-        #}
+        }
         printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-6.1f %-2s \n", color_start, $9, color_end, type, $7, $6, $8, size, unit
     }'
 end
 
+
+
+################################################################################ CODE
+# Analysis of code with pylint
+function pylint_average
+    set directory $argv[1]
+
+    if not test -d "$directory"
+        echo "Podany folder nie istnieje."
+        return 1
+    end
+
+    set total_score 0
+    set file_count 0
+    set -l folders_to_analyze (filter_venv_folders)
+    set -l array_folders (string split " " -- $folders_to_analyze)
+
+    for folder in $array_folders
+
+    # Używamy komendy find do rekurencyjnego znalezienia wszystkich plików .py
+        for file in (find $folder -name '*.py')
+                set pylint_output (pylint "$file")
+
+                # Wyciągnij wynik jakości kodu
+
+                for line in $pylint_output
+                    switch "$line"
+                        case "*Your code has been rated at*"
+
+                            set score (echo "$line" | awk '{print $7}')
+                            set only_points (echo $score | awk -F '/' '{print $1}')
+                            if test $only_points -ne 0
+                                set total_score (math "$total_score + $only_points")
+                            end
+                    end
+                end
+
+                set file_count (math "$file_count + 1")
+        end
+    end
+
+    if test $file_count -eq 0
+        echo "Nie znaleziono plików Pythona do analizy."
+        return 1
+    end
+
+    set average_score (math "$total_score / $file_count")
+
+    echo "Średnia jakość kodu dla repozytorium wynosi: $average_score"
+end
+
+
+
+# Function to filter out virtual environment folders
+function filter_venv_folders
+    set venv_folders
+    for folder in *
+        if not is_venv $folder
+            set venv_folders $venv_folders $folder
+        end
+    end
+    echo $venv_folders
+end
+
+# Python3
+function p
+    python3 $argv
+end
+
+# Open in Visual Studio Code
+function vs
+    code $argv
+end
+
+# Analyzing code, with line counter
+function sz
+    python3 /Users/mateuszormianek/functions/sz.py $argv
+end
+
+
+# Virtual env activation
+function venv
+    source $argv[1]/bin/activate.fish
+    echo "Activated virtual environment at $argv[1]"
+end
+
+
+# Check if folder is virtual env
 function is_venv
     # Check for the presence of the bin folder
     if test -d $argv/bin
@@ -304,6 +411,7 @@ function is_venv
     return 1 # Return 1 if any condition is not met, meaning it's not a venv
 end
 
+# Analyzing code, changes, number of lines
 function nl
     # Check if the current directory is a Git repository
     set -l split_opt ""
@@ -374,3 +482,18 @@ function nl
     end
 
 end
+
+
+################################################################################ OTHER
+# Editing plan.txt
+function pl
+    if test "$argv" = "d"
+        rm /Users/mateuszormianek/plan.txt
+        touch /Users/mateuszormianek/plan.txt
+    else if test "$argv" = "e"
+        nano /Users/mateuszormianek/plan.txt
+    else
+        cat /Users/mateuszormianek/plan.txt
+    end
+end
+
