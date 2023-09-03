@@ -41,7 +41,9 @@ function fl
         if string match -q "function*" $line
             set -l function_name (string split " " $line)[2]
             set -l edited_comment (string split "#" $comment)[2]
-            echo "F: $function_name - $edited_comment"
+            #echo "F: $function_name - $edited_comment"
+#            printf "F: %-2s - %-30s \n" , $function_name , $edited_comment
+            printf "F: %-14s -  %-30s\n" $function_name $comment
 
             set count_number (math "$count_number + 1")
             set comment ""
@@ -118,7 +120,7 @@ function git_last
 end
 
 # Commit, author and time, changes of last commit in repo
-function git_last_expanded
+function git_last_exp
     # Get the list of changed files
     set changed_files (git show --name-only --pretty=format:"" HEAD)
 
@@ -167,7 +169,7 @@ function git
             end
     else if test "$argv[1]" = "last"
         git_last
-    else if test "$argv[1]" = "last_expanded"
+    else if test "$argv[1]" = "last_exp"
     else
         command git $argv
     end
@@ -329,7 +331,7 @@ function pylint_average
 
     set total_score 0
     set file_count 0
-    set -l folders_to_analyze (filter_venv_folders)
+    set -l folders_to_analyze (find_venv_dir)
     set -l array_folders (string split " " -- $folders_to_analyze)
 
     for folder in $array_folders
@@ -369,7 +371,7 @@ end
 
 
 # Function to filter out virtual environment folders
-function filter_venv_folders
+function find_venv_dir
     set venv_folders
     for folder in *
         if not is_venv $folder
@@ -499,4 +501,3 @@ function pl
         cat /Users/mateuszormianek/plan.txt
     end
 end
-
