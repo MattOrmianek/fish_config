@@ -152,12 +152,13 @@ function git
         set global_name (git config --global user.name)
         set local_email (git config user.email)
         set local_name (git config user.name)
+        set last_commit_author (git log -1 --pretty=format:'%an <%ae>')
 
         echo "Globalny autor: $global_name <$global_email>"
         if test -n "$local_email" -o -n "$local_name"
             echo "Lokalny autor: $local_name <$local_email>"
         end
-
+        echo "Autor ostatniego commita: $last_commit_author"
         read -l -P 'Do you want to continue? [Y/N] ' confirm
 
         switch $confirm
@@ -178,8 +179,32 @@ end
 
 # Git log with advanced view
 function gl
-    gitl
+    set -l count $argv[1]
+    set -l email ""
+    
+    for arg in $argv
+        switch $arg
+            case "ath=*"
+                set email (string split "=" $arg)[2]
+                break
+        end
+    end
+    
+    if test -z "$email"
+        if test -z "$count"
+            git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all
+        else
+            git log -n $count --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all
+        end
+    else
+        if test -z "$count"
+            git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all --author="$email"
+        else
+            git log -n $count --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all --author="$email"
+        end
+    end
 end
+
 
 
 # Git branch
@@ -188,6 +213,23 @@ function b
 end
 
 ################################################################################# SYSTEM
+# IP address
+function show_locale
+    ifconfig -a | awk '/^[a-z]/ { interface=$1; } /inet / { print "Interface: " interface ", IP Address: " $2; }'
+end
+
+# Dirsize
+function dirsize
+    set -l dir_sizes (du -shc */ 2>/dev/null)
+    printf "%-10s %s\n" "Size" "Directory"
+    echo "-----------------------------"
+    for line in $dir_sizes
+        set -l size (echo $line | awk '{print $1}')
+        set -l dir (echo $line | awk '{print $2}')
+        printf "%-10s %s\n" $size $dir
+    end
+end
+
 # Searching for exact filename
 function s
     find . -name "$argv"
@@ -316,10 +358,29 @@ function l
         printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-6.1f %-2s \n", color_start, $9, color_end, type, $7, $6, $8, size, unit
     }'
 end
+#printf $output | awk '/total/{print $1}'
+#        size = (printf $output | awk '/total/{print $1}')
 
-
+        #(echo $output | awk '/total/{print $1}')
+        #size -l set (echo $output | awk '/total/{print $1}')
 
 ################################################################################ CODE
+# Running lite-xl (other command)
+function xl 
+    lite-xl $argv
+end
+
+
+# Running lite-xl
+function lx
+    lite-xl $argv
+end
+
+# Running vsc
+function code
+    set location "$PWD/$argv"
+    open -n -b "com.microsoft.VSCode" --args $location
+end
 # Analysis of code with pylint
 function pylint_average
     set directory $argv[1]
@@ -368,8 +429,6 @@ function pylint_average
     echo "Średnia jakość kodu dla repozytorium wynosi: $average_score"
 end
 
-
-
 # Function to filter out virtual environment folders
 function find_venv_dir
     set venv_folders
@@ -394,6 +453,44 @@ end
 # Analyzing code, with line counter
 function sz
     python3 /Users/mateuszormianek/functions/sz.py $argv
+end
+
+# Deactivate 
+function deactivate
+    if set -q VIRTUAL_ENV
+        # Unset environmental variables
+        set -e VIRTUAL_ENV
+        set -e PATH
+
+        # Restore original PATH
+        set -gx PATH $_OLD_VIRTUAL_PATH
+
+        # Unset local variable
+        set -e _OLD_VIRTUAL_PATH
+
+        echo "Virtual environment deactivated."
+    else
+        echo "No virtual environment is currently activated."
+    end
+end
+
+
+# Create virtual env
+function venv_create
+    set -l venv_name $argv[1]
+
+        if test -z "$venv_name"
+            echo "Usage: venv_create <venv_name>"
+            return 1
+        end
+
+        if test -d $venv_name
+            echo "Directory $venv_name already exists. Choose a different name."
+            return 1
+        end
+
+        python3 -m venv $venv_name
+        echo "Virtual environment $venv_name created successfully."
 end
 
 
