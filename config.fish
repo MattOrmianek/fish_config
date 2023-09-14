@@ -11,6 +11,8 @@ set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/
 #alias l='ls -all'
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
 
+set -x PATH $HOME/.pyenv/bin $PATH
+status --is-interactive; and . (pyenv init -|psub)
 
 
 ################################################################################# FISH
@@ -18,6 +20,8 @@ alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold 
 function f
     fish
 end
+
+
 
 # List of functions in fish
 function fl
@@ -32,7 +36,7 @@ function fl
     set -l comment ""
 
     for line in (cat $filepath)
-        # Sprawdzanie, czy linia jest komentarzem
+        # Spawdzanie, czy linia jest komentarzem
         if string match -q "#*" $line
             set comment $line
         end
@@ -53,6 +57,35 @@ function fl
 end
 
 ################################################################################# GIT
+# Check info about commit with hours
+function git_info
+    set -l commit_info (git log -1 --pretty=format:"%cd %an %s")
+
+    if test -n "$commit_info"
+        echo "Commit Info: $commit_info"
+    else
+        echo "Not a git repository or no commits yet."
+    end
+end
+
+# Check info about commit with hours for specific commit
+function git_info_exp
+    if test -z "$argv"
+        echo "Please provide a commit ID."
+        return 1
+    end
+
+    set -l commit_id $argv[1]
+    set -l commit_info (git log -1 --pretty=format:"%cd %an %s" $commit_id)
+
+    if test -n "$commit_info"
+        echo "Commit Info: $commit_info"
+    else
+        echo "Invalid commit ID or not a git repository."
+    end
+end
+
+
 # Checking name and email of git user
 function gml
     git config --global user.name
@@ -190,21 +223,22 @@ function gl
         end
     end
     
+    set -l git_format "%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset) %C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset) %C(bold magenta)(%cd)%C(reset)"
+    
     if test -z "$email"
         if test -z "$count"
-            git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all
+            git log --graph --date=format:'%Y-%m-%d %H:%M:%S' --format=format:"$git_format" --all
         else
-            git log -n $count --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all
+            git log -n $count --graph --date=format:'%Y-%m-%d %H:%M:%S' --format=format:"$git_format" --all
         end
     else
         if test -z "$count"
-            git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all --author="$email"
+            git log --graph --date=format:'%Y-%m-%d %H:%M:%S' --format=format:"$git_format" --all --author="$email"
         else
-            git log -n $count --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all --author="$email"
+            git log -n $count --graph --date=format:'%Y-%m-%d %H:%M:%S' --format=format:"$git_format" --all --author="$email"
         end
     end
 end
-
 
 
 # Git branch
@@ -213,6 +247,21 @@ function b
 end
 
 ################################################################################# SYSTEM
+# nmap scan
+function nmap_scan
+  set ip_address $argv[1]
+  set subnet_mask $argv[2]
+
+  if test -z "$ip_address" -o -z "$subnet_mask"
+    echo "Usage: nmap_scan <ip_address> <subnet_mask>"
+    return 1
+  end
+
+  echo "Scanning network $ip_address/$subnet_mask..."
+  nmap -sP $ip_address/$subnet_mask
+end
+
+
 # IP address
 function show_locale
     ifconfig -a | awk '/^[a-z]/ { interface=$1; } /inet / { print "Interface: " interface ", IP Address: " $2; }'
@@ -598,3 +647,7 @@ function pl
         cat /Users/mateuszormianek/plan.txt
     end
 end
+
+
+################################################################################ BINDING STUFF
+
