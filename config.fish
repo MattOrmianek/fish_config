@@ -6,7 +6,7 @@
 
 # THEME PURE #
 set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/functions/ $fish_function_path
-#source /Users/mateuszormianek/.config/fish/functions/theme-pure/conf.d/pure.fish
+#source /Users/mateuszormianek/.config/fish/functions/theme-p ure/conf.d/pure.fish
 
 #alias l='ls -all'
 alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset)' --all"
@@ -247,6 +247,11 @@ function b
 end
 
 ################################################################################# SYSTEM
+# open finder
+function finder
+    open .
+end
+
 # nmap scan
 function nmap_scan
   set ip_address $argv[1]
@@ -650,4 +655,4 @@ end
 
 
 ################################################################################ BINDING STUFF
-
+bind \x7F  'backward-kill-bigword'
