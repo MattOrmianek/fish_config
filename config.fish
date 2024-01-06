@@ -5,7 +5,7 @@
 # <<< conda initialize <<<
 
 # THEME PURE #
-set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/functions/ $fish_function_path
+#set fish_function_path /Users/mateuszormianek/.config/fish/functions/theme-pure/functions/ $fish_function_path
 #source /Users/mateuszormianek/.config/fish/functions/theme-p ure/conf.d/pure.fish
 
 #alias l='ls -all'
@@ -14,6 +14,9 @@ alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold 
 set -x PATH $HOME/.pyenv/bin $PATH
 status --is-interactive; and . (pyenv init -|psub)
 
+pyenv init - | source
+
+bind \cg 'code'
 
 ################################################################################# FISH
 # Fish reload
@@ -21,9 +24,25 @@ function f
     fish
 end
 
+#function fish_prompt
+#    set git_user_email (git config --get user.email)
+
+#    switch "$git_user_email"
+#        case "m.ormianek@techocean.pl"
+#            set display_name "TO"
+#        case "mormianek@cortivision.com"
+#            set display_name "CR"
+#        case '*'
+#            set display_name ""
+#    end
+
+#    echo -n "$USER@$HOSTNAME $PWD ($display_name) > "
+#end
 
 
 # List of functions in fish
+
+
 function fl
     set -l filepath "/Users/mateuszormianek/.config/fish/config.fish"
     set count_number 0
@@ -57,6 +76,29 @@ function fl
 end
 
 ################################################################################# GIT
+# Git commit shortcut
+function gcp
+    git add .
+    git commit -m "$argv"
+    git push
+end
+
+# Test function for pytest
+function pts
+    # Uruchom pytest z opcją verbose i zapisz jego wyjście do pliku
+    pytest -vv > pytest_output.txt 2>&1
+
+    # Wypisz zawartość pliku
+    cat pytest_output.txt
+end
+
+
+
+# Git commit shortcut
+function gc
+    git add .
+    git commit -m "$argv"
+end
 # Check info about commit with hours
 function git_info
     set -l commit_info (git log -1 --pretty=format:"%cd %an %s")
@@ -122,6 +164,20 @@ function to
     git config --global --get user.email
 end
 
+# Git user name and email to TOG
+function tog
+    echo "Before change: "
+    git config --global user.name
+    git config --global user.email
+
+    #change to TechOcean login and email
+    git config --global user.name "MateuszOrmianek"
+    git config --global user.email "m.ormianek@techocean.pl"
+
+    echo "After change: "
+    git config --global --get user.name
+    git config --global --get user.email
+end
 
 # Commit, author and time of last commit in repo
 function git_last
@@ -214,7 +270,7 @@ end
 function gl
     set -l count $argv[1]
     set -l email ""
-    
+
     for arg in $argv
         switch $arg
             case "ath=*"
@@ -222,9 +278,9 @@ function gl
                 break
         end
     end
-    
+
     set -l git_format "%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an <%ae>%C(reset) %C(bold yellow)%d%C(reset) %C(dim white)- %s%C(reset) %C(bold magenta)(%cd)%C(reset)"
-    
+
     if test -z "$email"
         if test -z "$count"
             git log --graph --date=format:'%Y-%m-%d %H:%M:%S' --format=format:"$git_format" --all
@@ -249,6 +305,11 @@ end
 ################################################################################# SYSTEM
 # open finder
 function finder
+    open .
+end
+
+# open finder other way
+function fi
     open .
 end
 
@@ -412,6 +473,7 @@ function l
         printf " %s%-" max_len "s%s %-2s %-3s %-3s %-5s | %-6.1f %-2s \n", color_start, $9, color_end, type, $7, $6, $8, size, unit
     }'
 end
+
 #printf $output | awk '/total/{print $1}'
 #        size = (printf $output | awk '/total/{print $1}')
 
@@ -419,8 +481,21 @@ end
         #size -l set (echo $output | awk '/total/{print $1}')
 
 ################################################################################ CODE
+# Running pytest no:warnings quite
+function pt
+    pytest -p no:warnings -q
+end
+# Running pytest no:warnings verbose
+function ptv
+    pytest -p no:warnings -v
+end
+# Running pytest no:warnings last failed
+function ptm
+    pytest -p no:warnings --lf
+end
+
 # Running lite-xl (other command)
-function xl 
+function xl
     lite-xl $argv
 end
 
@@ -509,7 +584,7 @@ function sz
     python3 /Users/mateuszormianek/functions/sz.py $argv
 end
 
-# Deactivate 
+# Deactivate
 function deactivate
     if set -q VIRTUAL_ENV
         # Unset environmental variables
@@ -547,6 +622,20 @@ function venv_create
         echo "Virtual environment $venv_name created successfully."
 end
 
+# Virtual env activation for CR
+function vcr
+    venv ~/Documents/pracka/venv
+end
+
+# Virtual env activation for PTF
+function vptf
+    venv ~/Desktop/pracka/permits-to-fly-backend/venv/venv_for_ptf
+end
+
+# Virtual env activation for MyWallet
+function vmw
+    venv ~/Desktop/pracka/venv/MyWallet
+end
 
 # Virtual env activation
 function venv
@@ -554,6 +643,10 @@ function venv
     echo "Activated virtual environment at $argv[1]"
 end
 
+# Deactivation of venv
+function vd
+    deactivate
+end
 
 # Check if folder is virtual env
 function is_venv
@@ -641,6 +734,41 @@ end
 
 
 ################################################################################ OTHER
+# Connect to ssh produkcyjny
+function ssh_prod
+    ssh -i /Users/mateuszormianek/.ssh/m_ormianek_google m_ormianek@34.116.215.199
+end
+
+# Connect to ssh produkcyjny
+function ssh_test
+    ssh -i /Users/mateuszormianek/.ssh/m_ormianek_google m_ormianek@104.197.222.172
+end
+
+# Scan network and find names of devices
+function scan_network
+    # Define the subnet to scan, e.g., 192.168.1.0/24
+    set subnet $argv[1]
+
+    # Check if subnet is provided
+    if not set -q subnet
+        echo "Usage: scan_network <subnet>"
+        return 1
+    end
+
+    # Run nmap to scan for devices and their names
+    nmap -sP $subnet | grep 'Nmap scan report for' | sed 's/Nmap scan report for //'
+end
+
+# Killall command
+function ka
+    killall $argv[1]
+end
+
+# Open postgresql and login
+function psql_login
+    psql -U postgres -h localhost
+end
+
 # Editing plan.txt
 function pl
     if test "$argv" = "d"
@@ -653,6 +781,33 @@ function pl
     end
 end
 
+# Kill process on port
+function kill_port --argument port
+    if test -z "$port"
+        echo "No port provided."
+        return 1
+    end
+
+    # Find processes listening on the given port
+    set -l pids (lsof -ti tcp:$port)
+
+    # Check if we found any PIDs
+    if test -z "$pids"
+        echo "No process found on port $port."
+        return 1
+    end
+
+    # Kill processes
+    for pid in $pids
+        echo "Killing process with PID $pid on port $port"
+        kill -9 $pid
+    end
+end
+
+
 
 ################################################################################ BINDING STUFF
-bind \x7F  'backward-kill-bigword'
+#bind \x7F  'backward-kill-bigword'
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/mateuszormianek/google-cloud-sdk/path.fish.inc' ]; . '/Users/mateuszormianek/google-cloud-sdk/path.fish.inc'; end
