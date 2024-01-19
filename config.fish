@@ -76,6 +76,40 @@ function fl
 end
 
 ################################################################################# GIT
+# Git switch but with typo
+function git
+    switch $argv[1]
+        case "switch"
+            command git switch $argv[2..-1]
+        case "sw"
+            command git switch $argv[2..-1]
+        case "swt"
+            command git switch $argv[2..-1]
+        case "swit"
+            command git switch $argv[2..-1]
+        case "switc"
+            command git switch $argv[2..-1]
+        case "swit"
+            command git switch $argv[2..-1]
+        case "siwtch"
+            command git switch $argv[2..-1]
+        case "siwch"
+            command git switch $argv[2..-1]
+        case "siwtc"
+            command git switch $argv[2..-1]
+        case "swtich"
+            command git switch $argv[2..-1]
+        case "swtcih"
+            command git switch $argv[2..-1]
+        case "siwth"
+            command git switch $argv[2..-1]
+        case "*"
+            command git $argv
+    end
+end
+
+
+
 # Git commit shortcut
 function gcp
     git add .
@@ -148,6 +182,22 @@ function cr
     git config --global --get user.name
     git config --global --get user.email
 end
+
+# Git user name and email to mo
+function mo
+    echo "Before change: "
+    git config --global user.name
+    git config --global user.email
+
+    #change to mo
+    git config --global user.name "MattOrmianek"
+    git config --global user.email "mattormianek@gmail.com"
+
+    echo "After change: "
+    git config --global --get user.name
+    git config --global --get user.email
+end
+
 
 # Git user name and email to TO
 function to
@@ -734,6 +784,44 @@ end
 
 
 ################################################################################ OTHER
+# Set text on screen
+function dt
+    venv /Users/mateuszormianek/Desktop/venv_tkinter
+    set joined_args (string join " " $argv)
+    p /Users/mateuszormianek/Desktop/todisplay.py "$joined_args"
+end
+
+# Change URL for testing in TPF to localhost
+function set_url
+    set file "/Users/mateuszormianek/Desktop/pracka/ptf-development/backend/.env"  # Change to the path of your .env file
+    set test_ip "'http://104.197.222.172/api'"   # Replace with the test environment IP
+    set prod_ip "'http://34.116.215.199/api'"    # Replace with the production environment IP
+    set local_ip "'http://127.0.0.1:5000'"       # Replace with the local environment IP
+
+    switch $argv[1]
+        case test
+            sed -i '' "s|^URL_FOR_TESTING=.*|URL_FOR_TESTING=$test_ip|" $file
+        case prod
+            sed -i '' "s|^URL_FOR_TESTING=.*|URL_FOR_TESTING=$prod_ip|" $file
+        case local
+            sed -i '' "s|^URL_FOR_TESTING=.*|URL_FOR_TESTING=$local_ip|" $file
+        case '*'
+            echo "Invalid argument. Please specify 'test', 'prod', or 'local'."
+    end
+end
+
+# Checking what URL is set in .env PTF
+function check_env_url
+    set file "/Users/mateuszormianek/Desktop/pracka/ptf-development/backend/.env"  # Change to the path of your .env file
+
+    set url_line (grep "URL_FOR_TESTING" $file)
+    if test -n "$url_line"
+        echo "Current URL_FOR_TESTING: $url_line"
+    else
+        echo "URL_FOR_TESTING not found in the file."
+    end
+end
+
 # Connect to ssh produkcyjny
 function ssh_prod
     ssh -i /Users/mateuszormianek/.ssh/m_ormianek_google m_ormianek@34.116.215.199
@@ -804,7 +892,9 @@ function kill_port --argument port
     end
 end
 
-
+function reset_bluetooth
+    sudo pkill bluetoothd
+end
 
 ################################################################################ BINDING STUFF
 #bind \x7F  'backward-kill-bigword'
