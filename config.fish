@@ -42,6 +42,9 @@ end
 
 # List of functions in fish
 
+function get_function_code --argument func_name
+    functions $func_name
+end
 
 function fl
     set -l filepath "/Users/mateuszormianek/.config/fish/config.fish"
