@@ -42,7 +42,7 @@ end
 
 # List of functions in fish
 
-function get_function_code --argument func_name
+function help --argument func_name
     functions $func_name
 end
 
@@ -895,6 +895,7 @@ function kill_port --argument port
     end
 end
 
+# Reset bluetooth - kill process to fix jigling mouse
 function reset_bluetooth
     sudo pkill bluetoothd
 end
