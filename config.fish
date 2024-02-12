@@ -807,6 +807,40 @@ function dt
     p /Users/mateuszormianek/Desktop/todisplay.py "$joined_args"
 end
 
+# Finding process by not full name
+function find_process --argument partial_name
+    set -l pids (pgrep -fl "$partial_name" | awk '{print $1}')
+    if count $pids > /dev/null
+        for pid in $pids
+            set -l full_process_name (ps -p $pid -o command=)
+            echo "PID: $pid - Process Name: $full_process_name"
+        end
+    else
+        echo "No process found with partial name '$partial_name'"
+    end
+end
+
+function kill_process_by_partial_name --argument partial_name
+    set -l pids (pgrep -fl "$partial_name" | awk '{print $1}')
+    if count $pids > /dev/null
+        echo "Attempting to kill the following PIDs: $pids"
+        for pid in $pids
+            kill $pid
+            switch $status
+                case 0
+                    echo "Successfully killed PID $pid"
+                case '*'
+                    echo "Failed to kill PID $pid"
+            end
+        end
+    else
+        echo "No process found with partial name '$partial_name'"
+    end
+end
+
+alias kp='kill_process_by_partial_name'
+alias fp='find_process'
+
 # Change URL for testing in TPF to localhost
 function set_url
     set file "/Users/mateuszormianek/Desktop/pracka/ptf-development/backend/.env"  # Change to the path of your .env file
