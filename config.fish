@@ -787,6 +787,19 @@ end
 
 
 ################################################################################ OTHER
+# Copying into cmd + v python
+function pc
+    python3 $argv 2>&1 | tee /tmp/output.txt
+    cat /tmp/output.txt | pbcopy
+end
+
+
+# Copying into cmd + v pwd
+function cpwd
+    pwd
+    pwd | pbcopy
+end
+
 # Set text on screen
 function dt
     venv /Users/mateuszormianek/Desktop/venv_tkinter
@@ -850,6 +863,21 @@ function scan_network
     nmap -sP $subnet | grep 'Nmap scan report for' | sed 's/Nmap scan report for //'
 end
 
+# MongoDB stop command
+function stop_mongodb
+    brew services stop mongodb-community
+end
+
+# MongoDB restart command
+function restart_mongodb
+    brew services restart mongodb-community
+end
+
+# MongoDB start command
+function start_mongodb
+    brew services start mongodb/brew/mongodb-community
+end
+
 # Killall command
 function ka
     killall $argv[1]
@@ -895,8 +923,8 @@ function kill_port --argument port
     end
 end
 
-# Reset bluetooth - kill process to fix jigling mouse
-function reset_bluetooth
+# Restart bluetooth - kill process to fix jigling mouse
+function restart_bluetooth
     sudo pkill bluetoothd
 end
 
