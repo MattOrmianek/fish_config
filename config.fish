@@ -14,6 +14,8 @@ alias gitl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold 
 set -x PATH $HOME/.pyenv/bin $PATH
 status --is-interactive; and . (pyenv init -|psub)
 
+set -gx PATH /usr/local/opt/libpq/bin $PATH
+
 pyenv init - | source
 
 bind \cg 'code'
