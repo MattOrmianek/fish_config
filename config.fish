@@ -16,7 +16,13 @@ status --is-interactive; and . (pyenv init -|psub)
 
 set -gx PATH /usr/local/opt/libpq/bin $PATH
 
+set -gx PYENV_ROOT $HOME/.pyenv
+set -gx PATH $PYENV_ROOT/bin $PATH
+status --is-interactive; and source (pyenv init -|psub)
+
 pyenv init - | source
+
+bind \co finder_open
 
 bind \cg 'code'
 
@@ -46,6 +52,10 @@ end
 
 function help --argument func_name
     functions $func_name
+end
+
+function finder_open --description 'Open current path in Finder'
+    open -a Finder .
 end
 
 function fl
@@ -131,7 +141,10 @@ function pts
     cat pytest_output.txt
 end
 
-
+# Get ip
+function get_ip
+    curl ifconfig.me -s | pbcopy
+end
 
 # Git commit shortcut
 function gc
@@ -383,10 +396,6 @@ function nmap_scan
 end
 
 
-# IP address
-function show_locale
-    ifconfig -a | awk '/^[a-z]/ { interface=$1; } /inet / { print "Interface: " interface ", IP Address: " $2; }'
-end
 
 # Dirsize
 function dirsize
@@ -624,6 +633,19 @@ function find_venv_dir
     echo $venv_folders
 end
 
+# RUST
+function rust
+    # Measure compilation time
+    time rustc $argv
+    echo "Compilation finished."
+    echo "________________________________________________________"
+    # Remove '.rs' extension to get the binary name
+    set name (string replace -r '.rs$' '' -- $argv)
+    # Execute the compiled binary
+    ./$name
+end
+
+
 # Python3
 function p
     python3 $argv
@@ -679,7 +701,7 @@ end
 
 # Virtual env activation for CR
 function vcr
-    venv ~/Documents/pracka/venv
+    venv /Users/mateuszormianek/Documents/pracka/Cortivision/only_layout_repo/cortiview2/venv
 end
 
 # Virtual env activation for PTF
@@ -934,6 +956,11 @@ function pl
     else
         cat /Users/mateuszormianek/plan.txt
     end
+end
+
+# Hyper settings
+function hyper_settings
+    xl /Users/mateuszormianek/.config/Hyper
 end
 
 # Kill process on port
